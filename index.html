@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carbon Footprint Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Carbon Footprint Tracker</h1>
+
+    <form id="carbonForm">
+      <label for="travel">Car travel (km):</label>
+      <input type="number" id="travel" name="travel" required />
+
+      <label for="electricity">Electricity usage (kWh):</label>
+      <input type="number" id="electricity" name="electricity" required />
+
+      <label for="flights">Flights (hours):</label>
+      <input type="number" id="flights" name="flights" required />
+
+      <button type="submit">Calculate</button>
+    </form>
+
+    <div id="result"></div>
+    <canvas id="emissionChart" width="400" height="200"></canvas>
+    <div id="suggestions" style="margin-top: 20px;"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
