@@ -8,8 +8,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <script>
+    // Redirect to login page if not logged in
+    const loggedUser = localStorage.getItem('ecoUser');
+    if (!loggedUser) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
   <div class="container">
-    <h1>🌱 Daily Carbon Footprint Tracker</h1>
+    <h1>♻️ Eco Carbon Footprint Tracker</h1>
+
+    <div id="userInfo" style="margin-bottom: 20px;">
+      Logged in as: <strong id="usernameDisplay"></strong>
+      <button id="logoutBtn">Logout</button>
+    </div>
 
     <form id="carbonForm">
       <label for="travel">Car travel (km):</label>
@@ -38,6 +51,21 @@
 
     <canvas id="emissionChart" width="600" height="300" style="margin-top: 40px;"></canvas>
   </div>
+
+  <script>
+    // Show logged in username and handle logout
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const user = localStorage.getItem('ecoUser');
+    if (user) {
+      usernameDisplay.textContent = user;
+    }
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('ecoUser');
+      window.location.href = 'login.html';
+    });
+  </script>
 
   <script src="script.js"></script>
 </body>
