@@ -10,14 +10,14 @@ document.getElementById('carbonForm').addEventListener('submit', function(event)
   const plantGrams = parseFloat(document.getElementById('plant').value) || 0;
 
   // Emission factors (kg CO2 per unit)
-  const carFactor = 0.21;       // per km
-  const electricityFactor = 0.5; // per kWh
-  const flightFactor = 90;      // per flight hour (estimate)
+  const carFactor = 0.21;       
+  const electricityFactor = 0.5; 
+  const flightFactor = 90;      
 
   // Food emission factors per gram (kg CO2 per gram)
-  const meatFactor = 0.027;     // 27 kg CO2 per kg = 0.027 per gram
-  const dairyFactor = 0.013;    // 13 kg CO2 per kg = 0.013 per gram
-  const plantFactor = 0.002;    // 2 kg CO2 per kg = 0.002 per gram
+  const meatFactor = 0.027;     
+  const dairyFactor = 0.013;    
+  const plantFactor = 0.002;    
 
   // Calculate emissions
   const carEmission = carKm * carFactor;
@@ -38,7 +38,6 @@ document.getElementById('carbonForm').addEventListener('submit', function(event)
   // Suggestion logic based on highest emission source
   let suggestionText = "";
 
-  // Find max emission category for suggestion
   const emissions = {
     Car: carEmission,
     Electricity: electricityEmission,
@@ -48,7 +47,6 @@ document.getElementById('carbonForm').addEventListener('submit', function(event)
     Plant: plantEmission,
   };
 
-  // Find category with max emission
   const maxCategory = Object.keys(emissions).reduce((a, b) => emissions[a] > emissions[b] ? a : b);
 
   switch(maxCategory) {
@@ -78,8 +76,7 @@ document.getElementById('carbonForm').addEventListener('submit', function(event)
     <p><strong>Suggestion to Reduce Your Carbon Footprint:</strong><br>${suggestionText}</p>
   `;
 
-  // Draw bar chart with Chart.js
-  // Destroy previous chart instance if exists
+  // Draw bar chart with Chart.js for current day breakdown
   if (window.emissionChartInstance) {
     window.emissionChartInstance.destroy();
   }
@@ -119,4 +116,87 @@ document.getElementById('carbonForm').addEventListener('submit', function(event)
       }
     }
   });
+
+  // --- New: Save today's total emission to localStorage for user ---
+
+  const username = localStorage.getItem('ecoUser');
+  if (username) {
+    const storageKey = `${username}_footprints`;
+    const today = new Date().toISOString().slice(0, 10);
+
+    let data = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+    // Save today's emission
+    data[today] = totalEmission;
+
+    // Remove entries older than 30 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    for (const date in data) {
+      if (new Date(date) < cutoff) {
+        delete data[date];
+      }
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    
+    // Update historical chart
+    renderHistoricalChart(data);
+  }
+
+  // Reset the form after submit
+  this.reset();
 });
+
+// --- Historical chart for last 30 days ---
+
+let historicalChartInstance;
+
+function renderHistoricalChart(data) {
+  const ctx2 = document.getElementById('historicalChart').getContext('2d');
+  const dates = Object.keys(data).sort((a,b) => new Date(a) - new Date(b));
+  const values = dates.map(date => data[date]);
+
+  if (historicalChartInstance) {
+    historicalChartInstance.destroy();
+  }
+
+  historicalChartInstance = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: 'Daily Carbon Footprint (kg CO₂)',
+        data: values,
+        borderColor: '#2c3e50',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      scales: {
+        x: { title: { display: true, text: 'Date' } },
+        y: { title: { display: true, text: 'kg CO₂' }, beginAtZero: true }
+      },
+      responsive: true,
+      maintainAspectRatio: false,
+    }
+  });
+}
+
+// --- On page load, load saved data and render historical chart ---
+
+window.addEventListener('load', () => {
+  const username = localStorage.getItem('ecoUser');
+  if (!username) return;
+
+  const storageKey = `${username}_footprints`;
+  const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+  if (Object.keys(savedData).length > 0) {
+    renderHistoricalChart(savedData);
+  }
+});
+
